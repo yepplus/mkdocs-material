@@ -1,0 +1,6 @@
+mkdocs-glightbox==0.3.6
+jieba==0.42.1
+mkdocs-git-revision-date-localized-plugin==1.2.6
+plantuml-markdown==3.9.7
+mkdocs-git-committers-plugin-2==2.3.0
+mkdocs-git-authors-plugin==0.9.0

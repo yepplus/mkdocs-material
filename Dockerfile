@@ -36,6 +36,28 @@ COPY package.json package.json
 COPY README.md README.md
 COPY *requirements.txt ./
 COPY pyproject.toml pyproject.toml
+# Copy Additional font
+COPY fonts /usr/share/fonts/Additional
+RUN apk --update --upgrade --no-cache add fontconfig ttf-freefont font-noto terminus-font \
+    && fc-cache -f \
+    && fc-list | sort
+
+# Runtimes for WeasyPrint
+RUN apk update \
+    && apk --update --upgrade --no-cache add cairo-dev pango-dev gdk-pixbuf-dev \
+    && apk --update --upgrade --no-cache add libsass
+
+RUN set -ex \
+    && apk add --no-cache --virtual .build-deps \
+        musl-dev g++ jpeg-dev zlib-dev libffi-dev libsass-dev \
+    && SYSTEM_SASS=1 pip install --no-cache-dir \
+        mdx-gh-links mkdocs-redirects mkdocs-minify-plugin \
+        mkdocs-with-pdf \
+    && apk del .build-deps
+
+# Headless Chrome
+RUN apk --update --upgrade --no-cache add udev chromium \
+&& chromium-browser --version
 
 # Perform build and cleanup artifacts and caches
 RUN \
@@ -90,6 +112,11 @@ RUN \
   git config --system --add safe.directory /docs \
 && \
   git config --system --add safe.directory /site
+
+# 修改插件的问题
+COPY material/plugins/git-committers/plugin.py /usr/local/lib/python3.11/site-packages/mkdocs_git_committers_plugin_2/plugin.py
+COPY material/plugins/with-pdf/generator.py /usr/local/lib/python3.11/site-packages/mkdocs_with_pdf/generator.py
+COPY pdf_event_hook pdf_event_hook
 
 # Set working directory
 WORKDIR /docs
